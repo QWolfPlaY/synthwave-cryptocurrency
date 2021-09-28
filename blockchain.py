@@ -96,7 +96,7 @@ class Transaction (object):
         self.time = str(datetime.now())
         self.hash = self.calculateHash()
         
-def calculateHash(self):
+    def calculateHash(self):
         hashTransactions = ""
         for transaction in self.transactions:
             hashTransactions +=transaction.hash
