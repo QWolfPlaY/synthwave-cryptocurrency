@@ -17,6 +17,53 @@ class Blockchain (object):
         else:
             block.prev = "Null"
         self.chain.append(block)
+    
+    def chainJSONEncode(self):
+        blockArrayJSON = []
+
+        for block in self.chain:
+            blockJSON = {}
+            blockJSON["hash"] = block.hash
+            blockJSON["prev"] = block.prev
+            blockJSON["index"] = block.index
+            blockJSON["time"] = block.time
+            blockJSON["nonce"] = block.nonce
+            blockJSON["wave"] = block.wave
+        
+        transactionsJSON = []
+        tJSON = {}
+        for transaction in block.transactions:
+            tJSON["time"] = transaction.time
+            tJSON["sender"] = transaction.sender
+            tJSON["reciever"] = transaction.reciever
+            tJSON["amt"] = transaction.amt
+            tJSON["hash"] = transaction.hash
+        
+        blockJSON['transactions'] = transactionsJSON
+        
+        blockArrayJSON.append(blockJSON)
+
+        return blockArrayJSON
+
+    def chainJSONDecode(self,chainJSON):
+        chain = []
+        for blockJSON in chainJSON:
+
+            tArray = []
+            for tJSON in blockJSON['transactions']:
+                transaction = Transaction(tJSON['sender'], tJSON['receiver'], tJSON['amt'])
+                transaction.time = tJSON['time']
+                transaction.hash = tJSON['hash']
+                tArray.append(transaction)
+            
+            block = Block((tArray), blockJSON['time'], blockJSON['index'])
+            block.hash = blockJSON['hash']
+            block.prev = blockJSON['prev']
+            block.nonce = blockJSON['nonce']
+            block.wave = blockJSON['wave']
+            
+            chain.append(block)
+        return chain
 
 class Block (object):
     def __init__(self, transactions, time, index):
@@ -24,23 +71,29 @@ class Block (object):
         self.transactions = transactions
         self.time = time
         self.prev = ''
+        self.nonce = 0
+        self.wave = self.calculateWave()
         self.hash = self.calculateHash()
+    
+    def calculateWAve(self):
+        return "8a6b9n"
 
     def calculateHash(self):
         hashTransactions = ""
+        
         for transaction in self.transactions:
             hashTransactions +=transaction.hash
         
-        hashString = str(self.time) + hashTransactions + self.prev + str(self.index)
+        hashString = str(self.time) + hashTransactions + self.wave +  self.prev + str(self.nonce)
         hashEncoded = json.dumps(hashString, sort_keys=True).encode()
         return hashlib.sha256(hashEncoded).hexdigest()
         
 class Transaction (object):
-    def __init__(self, sender, reciver, amt):
+    def __init__(self, sender, receiver, amt):
         self.sender = sender
-        self.reciver = reciver
+        self.receiver = receiver
         self.amt = amt
-        self.time = time()
+        self.time = str(datetime.now())
         self.hash = self.calculateHash()
         
 def calculateHash(self):
@@ -48,6 +101,6 @@ def calculateHash(self):
         for transaction in self.transactions:
             hashTransactions +=transaction.hash
         
-        hashString = self.sender + self.reciver + str(self.amt) + str(self.time)
+        hashString = self.sender + self.receiver + str(self.amt) + str(self.time)
         hashEncoded = json.dumps(hashString, sort_keys=True).encode()
         return hashlib.sha256(hashEncoded).hexdigest()
