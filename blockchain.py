@@ -1,7 +1,7 @@
 import json
 from time import time
 from datetime import datetime
-import base64
+#import base64
 import hashlib
 
 class Blockchain (object):
