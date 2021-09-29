@@ -64,6 +64,21 @@ class Blockchain (object):
             
             chain.append(block)
         return chain
+    
+    def getBalance(self, person):
+        balance = 0
+        for i in range(1, len(self.chain)):
+            block = self.chain[i]
+            try:
+                for j in range(1, len(block.transactions)):
+                    transaction = block.transactions[j]
+                    if(transaction.sender == person):
+                        balance -= transaction.amt
+                    if(transaction.receiver == person):
+                        balance += transaction.amt
+            except AttributeError:
+                print("no transaction")
+        return balance + 100
 
 class Block (object):
     def __init__(self, transactions, time, index):
@@ -87,7 +102,26 @@ class Block (object):
         hashString = str(self.time) + hashTransactions + self.wave +  self.prev + str(self.nonce)
         hashEncoded = json.dumps(hashString, sort_keys=True).encode()
         return hashlib.sha256(hashEncoded).hexdigest()
+
+    def MineBlock(self, difficulty, showDebug):
+        arr = []
+        for i in range(0, difficulty):
+            arr.append(i)
         
+        arrStr = map(atr, arr)
+        hashPuzzle = ''.join(arrStr)
+        if(showDebug == True):
+            print(len(hashPuzzle))                  # DEBUG ONLY
+        
+        while self.hash[0:difficulty] != hashPuzzle:
+            self.nonce += 1
+            self.hash = self.calculateHash()
+            if(showDebug == True):
+                print(len(self.hashPuzzle))         # DEBUG ONLY
+                print(len(self.hash[0:difficulty])) # DEBUG ONLY
+            print("Block Mined!")
+            return True
+
 class Transaction (object):
     def __init__(self, sender, receiver, amt):
         self.sender = sender
