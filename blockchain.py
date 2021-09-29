@@ -7,6 +7,7 @@ import hashlib
 class Blockchain (object):
     def __init__(self):
         self.chain = []
+        self.pendingTransactions = []
     
     def getPrevBlock(self):
         return self.chain[-1]
@@ -138,3 +139,13 @@ class Transaction (object):
         hashString = self.sender + self.receiver + str(self.amt) + str(self.time)
         hashEncoded = json.dumps(hashString, sort_keys=True).encode()
         return hashlib.sha256(hashEncoded).hexdigest()
+    
+    def isTransactionValid(self):
+        if(self.hash != self.calculateHash()):
+            return False
+        if(self.sender == self.receiver):
+            return False
+        if not self.signature or len(self.signature) == 0:
+            print("Signature Error!")
+            return False
+        return True
