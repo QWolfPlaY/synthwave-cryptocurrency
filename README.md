@@ -14,5 +14,5 @@
 <div align="center">
     <img src="https://img.shields.io/badge/Hashing%20Method-SHA--256-%23f39331">
     <img src="https://img.shields.io/badge/Requirements-hashlib%2C%20time%2C%20datetime%2C%20json-brightgreen">
-    <img src="https://img.shields.io/badge/Language-Python%203.7-9cf">
+    <img src="https://img.shields.io/badge/Language-Python%203-9cf">
 </div>
