@@ -35,7 +35,7 @@ class Blockchain (object):
         for transaction in block.transactions:
             tJSON["time"] = transaction.time
             tJSON["sender"] = transaction.sender
-            tJSON["reciever"] = transaction.reciever
+            tJSON["receiver"] = transaction.receiver
             tJSON["amt"] = transaction.amt
             tJSON["hash"] = transaction.hash
         
@@ -108,7 +108,7 @@ class Block (object):
         for i in range(0, difficulty):
             arr.append(i)
         
-        arrStr = map(atr, arr)
+        arrStr = map(str, arr)
         hashPuzzle = ''.join(arrStr)
         if(showDebug == True):
             print(len(hashPuzzle))                  # DEBUG ONLY
