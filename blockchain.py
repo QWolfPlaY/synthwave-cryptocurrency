@@ -1,7 +1,6 @@
 import json
 from time import time
 from datetime import datetime
-#import base64
 import hashlib
 
 class Blockchain (object):
@@ -12,12 +11,32 @@ class Blockchain (object):
     def getPrevBlock(self):
         return self.chain[-1]
     
-    def addBlock(self, block):
-        if(len(self.chain) > 0):
-            block.prev = self.getPrevBlock().hash
-        else:
-            block.prev = "Null"
-        self.chain.append(block)
+    def addGenesisBlock(self, block): #   !!!WARNING!!! - This function will break whole blockchain
+        tArray = []
+        tArray.append(Transaction("system", "system0", 16))
+        genesis = Block(tArray, str(datetime.now(), 0))
+        genesis.prev = "Null"
+        return genesis
+    
+    def isChainValid(self):
+        for i in range(1, len(self.chain)):
+            b1 = self.chain[i-1]
+            b2 = self.chain[i]
+
+            if not b2.hashValidTransactions():
+                print("Error 1")
+                return False
+            
+            if b2.hash != b2.calculateHash():
+                print("Error 2")
+                return False
+            
+            if b2.prev != b1.hash:
+                print("Error 3")
+                return False
+            
+        return True
+
     
     def chainJSONEncode(self):
         blockArrayJSON = []
@@ -121,6 +140,13 @@ class Block (object):
                 print(len(self.hashPuzzle))         # DEBUG ONLY
                 print(len(self.hash[0:difficulty])) # DEBUG ONLY
             print("Block Mined!")
+            return True
+    
+    def hashValidTransactions(self):
+        for i in range(0, len(self.transactions)):
+            transaction = self.transactions[i]
+            if not transaction.isTransactionValid():
+                return False
             return True
 
 class Transaction (object):
