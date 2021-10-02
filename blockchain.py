@@ -1,7 +1,9 @@
 import json
+import hashlib
 from time import time
 from datetime import datetime
-import hashlib
+from Crypto.PublicKey import RSA
+from Crypto.Signature import *
 
 class Blockchain (object):
     def __init__(self):
@@ -23,7 +25,7 @@ class Blockchain (object):
             b1 = self.chain[i-1]
             b2 = self.chain[i]
 
-            if not b2.hashValidTransactions():
+            if not b2.hasValidTransactions():
                 print("Error 1")
                 return False
             
@@ -37,7 +39,40 @@ class Blockchain (object):
             
         return True
 
-    
+    def minePendingTransactions(self, miner):
+        lenPT = len(self.pendingtransactions)
+        if(lenPT <= 1):
+            print("Not enough to transactions!")
+            return False
+        else:
+            for i in range(0, lenPT, self.blockSize):
+                end = i + self.blockSize
+                if i >= lenPT:
+                    end = lenPT
+                
+                transactionSlice = self.pendingtransactions[i:end]
+                newBlock = Block(transactionSlice, str(datetime.now()), len(self.chain))
+                hashVal = self.getPrevBlock().hash
+                newBlock.prev = hashVal
+                newBlock.mineBlock(self.difficulty)
+                self.chain.append(newBlock)
+            
+            print("Mining Transactions success!")
+            payMiner = Transaction("Miner Reward")
+
+    def generateKeys(self):
+        key = RSA.generate(2048)
+        private_key = key.export_key
+        file_out = open("private.pem", "wb")
+        file_out.write(private_key)
+
+        public_key = key.publickey().export_key()
+        file_out = open("public.pem", "wb")
+        file_out.write(public_key)
+
+        print(public_key.decode('ASCII'))
+        return key.public_key().export_key().decode("ASCII")
+
     def chainJSONEncode(self):
         blockArrayJSON = []
 
@@ -123,7 +158,7 @@ class Block (object):
         hashEncoded = json.dumps(hashString, sort_keys=True).encode()
         return hashlib.sha256(hashEncoded).hexdigest()
 
-    def MineBlock(self, difficulty, showDebug):
+    def mineBlock(self, difficulty, showDebug):
         arr = []
         for i in range(0, difficulty):
             arr.append(i)
@@ -142,7 +177,7 @@ class Block (object):
             print("Block Mined!")
             return True
     
-    def hashValidTransactions(self):
+    def hasValidTransactions(self):
         for i in range(0, len(self.transactions)):
             transaction = self.transactions[i]
             if not transaction.isTransactionValid():
