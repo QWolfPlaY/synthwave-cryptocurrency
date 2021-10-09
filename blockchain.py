@@ -4,7 +4,7 @@ from time import time
 from datetime import datetime
 from Crypto.PublicKey import RSA
 from Crypto.Signature import *
-
+from colorama import init, Fore, Back, Style
 class Blockchain (object):
     def __init__(self):
         self.chain = []
@@ -13,28 +13,57 @@ class Blockchain (object):
     def getPrevBlock(self):
         return self.chain[-1]
     
-    def addGenesisBlock(self, block): #   !!!WARNING!!! - This function will break whole blockchain
+    def addGenesisBlock(self): #   !!!WARNING!!! - This function will break whole blockchain
         tArray = []
         tArray.append(Transaction("system", "system0", 16))
         genesis = Block(tArray, str(datetime.now(), 0))
         genesis.prev = "Null"
         return genesis
     
+    def addTransactions(self, sender, receiver, amt, keyString, senderKey, showDebug):
+         keyByte = keyString.encode("ASCII")
+         senderKeyByte = senderKey.encode("ASCII")
+
+         if(showDebug == True):
+             print(type(keyByte), keyByte) #DEBUG ONLY
+         
+         key = RSA.import_key(keyByte)
+         senderKey = RSA.import_key(senderKeyByte)
+
+         if not sender or not receiver or not amt:
+             print(Fore.RED + "Transaction Failed - Error code: 1")
+             print(Style.RESET_ALL)
+
+         transaction = Transaction(sender, receiver, amt)
+
+         transaction.signTransaction(key, senderKey)
+
+         if not transaction.isTransactionValid():
+             print(Fore.RED + "Transaction failed - Error code: 2")
+             return False
+         self.pendingTransactions.append(transaction)
+         return len(self.chain) + 1
+
+
+
     def isChainValid(self):
         for i in range(1, len(self.chain)):
             b1 = self.chain[i-1]
             b2 = self.chain[i]
 
             if not b2.hasValidTransactions():
-                print("Error 1")
+                print(Fore.RED + "Failed - Error code: 1")
+                print(Style.RESET_ALL)
                 return False
             
             if b2.hash != b2.calculateHash():
-                print("Error 2")
+                print(Fore.RED + "Failed - Error code: 2")
+                print(Style.RESET_ALL)
                 return False
             
             if b2.prev != b1.hash:
-                print("Error 3")
+                print(Fore.RED + "Failed - Error code: 3")
+                print(Style.RESET_ALL)
                 return False
             
         return True
@@ -42,7 +71,8 @@ class Blockchain (object):
     def minePendingTransactions(self, miner):
         lenPT = len(self.pendingtransactions)
         if(lenPT <= 1):
-            print("Not enough to transactions!")
+            print(Fore.RED + "Not enough to transactions!")
+            print(Style.RESET_ALL)
             return False
         else:
             for i in range(0, lenPT, self.blockSize):
@@ -134,6 +164,8 @@ class Blockchain (object):
             except AttributeError:
                 print("no transaction")
         return balance + 100
+    
+
 
 class Block (object):
     def __init__(self, transactions, time, index):
