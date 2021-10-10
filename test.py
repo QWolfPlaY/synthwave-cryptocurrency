@@ -7,14 +7,10 @@ pp = pprint.PrettyPrinter(indent=4)
 bc = Blockchain()
 tr = []
 
-block = Block(tr, time(), 0)
-bc.addBlock(block)
+bc.addGenesisBlock()
+bc.addGenesisBlock()
+bc.addGenesisBlock()
 
-block = Block(tr, time(), 1)
-bc.addBlock(block)
+bc.saveJSON()
 
-block = Block(tr, time(), 2)
-bc.addBlock(block)
-
-pp.pprint(bc.chainJSONEncode())
-print("Length: ", len(bc.chain))
+bc.loadJSON()

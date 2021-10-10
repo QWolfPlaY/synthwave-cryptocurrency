@@ -1,13 +1,21 @@
-import json
+import base64
 import hashlib
-from time import time
+import json
+import os
 from datetime import datetime
+from time import time
+
+from colorama import Back, Fore, Style, init
+from Crypto.Cipher import AES
 from Crypto.PublicKey import RSA
+from Crypto.Random import get_random_bytes
 from Crypto.Signature import *
-from colorama import init, Fore, Back, Style
+from cryptography.fernet import Fernet, MultiFernet
+
+
 class Blockchain (object):
     def __init__(self):
-        self.chain = []
+        self.chain = [self.addGenesisBlock()]
         self.pendingTransactions = []
     
     def getPrevBlock(self):
@@ -16,7 +24,7 @@ class Blockchain (object):
     def addGenesisBlock(self): #   !!!WARNING!!! - This function will break whole blockchain
         tArray = []
         tArray.append(Transaction("system", "system0", 16))
-        genesis = Block(tArray, str(datetime.now(), 0))
+        genesis = Block(tArray, str(datetime.now()) ,0)
         genesis.prev = "Null"
         return genesis
     
@@ -43,8 +51,6 @@ class Blockchain (object):
              return False
          self.pendingTransactions.append(transaction)
          return len(self.chain) + 1
-
-
 
     def isChainValid(self):
         for i in range(1, len(self.chain)):
@@ -89,6 +95,21 @@ class Blockchain (object):
             
             print("Mining Transactions success!")
             payMiner = Transaction("Miner Reward")
+     
+    def getBalance(self, person):
+        balance = 0
+        for i in range(1, len(self.chain)):
+            block = self.chain[i]
+            try:
+                for j in range(1, len(block.transactions)):
+                    transaction = block.transactions[j]
+                    if(transaction.sender == person):
+                        balance -= transaction.amt
+                    if(transaction.receiver == person):
+                        balance += transaction.amt
+            except AttributeError:
+                print("no transaction")
+        return balance + 100
 
     def generateKeys(self):
         key = RSA.generate(2048)
@@ -150,22 +171,40 @@ class Blockchain (object):
             chain.append(block)
         return chain
     
-    def getBalance(self, person):
-        balance = 0
-        for i in range(1, len(self.chain)):
-            block = self.chain[i]
-            try:
-                for j in range(1, len(block.transactions)):
-                    transaction = block.transactions[j]
-                    if(transaction.sender == person):
-                        balance -= transaction.amt
-                    if(transaction.receiver == person):
-                        balance += transaction.amt
-            except AttributeError:
-                print("no transaction")
-        return balance + 100
+    def saveJSON(self):
+        Json = str(self.chainJSONEncode())
+        J = base64.b64encode(Json.encode('ascii'), altchars=None)
+        
+        with open('blockchain', 'w') as file_out:
+            file_out.write(str(J))
+            file_out.close()
+        
+        # Encryption Section - Needs work!
+        # with open('blockchain.tmp', 'r') as tmp_file:
+        #     k = Fernet.generate_key()
+        #     pemKPV = open('blockchainkey.fnet', 'w')
+        #     pemKPV.write(str(k))
+        #     pemKPV.close()
+        #     #tempfile = tmp_file.read()
+        #     mf = MultiFernet(k)
+        #     out_file = open('blockchain', 'w')
+        #     out_file.write(mf.encrypt(Json.encode()))
+        #     out_file.close()
+        #     os.remove("blockchain.tmp")
     
+    def loadJSON(self):
+        self.chain = []
+        
+        with open('blockchain', 'r') as f:
+            b64s = f.read()
+            b64 = str(b64s.encode('ascii'))
+            f.close()
+        
+        self. chain = self.chainJSONDecode(b64)
+        
 
+
+            
 
 class Block (object):
     def __init__(self, transactions, time, index):
@@ -177,7 +216,7 @@ class Block (object):
         self.wave = self.calculateWave()
         self.hash = self.calculateHash()
     
-    def calculateWAve(self):
+    def calculateWave(self):
         return "8a6b9n"
 
     def calculateHash(self):
@@ -226,11 +265,11 @@ class Transaction (object):
         
     def calculateHash(self):
         hashTransactions = ""
-        for transaction in self.transactions:
-            hashTransactions +=transaction.hash
         
         hashString = self.sender + self.receiver + str(self.amt) + str(self.time)
+	    
         hashEncoded = json.dumps(hashString, sort_keys=True).encode()
+		
         return hashlib.sha256(hashEncoded).hexdigest()
     
     def isTransactionValid(self):
