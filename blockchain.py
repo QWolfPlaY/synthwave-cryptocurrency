@@ -4,9 +4,8 @@ import json
 import os
 from datetime import datetime
 from time import time
-
 from colorama import Back, Fore, Style, init
-from Crypto.Cipher import AES
+# from Crypto.Cipher import AES
 from Crypto.PublicKey import RSA
 from Crypto.Random import get_random_bytes
 from Crypto.Signature import *
@@ -17,11 +16,15 @@ class Blockchain (object):
     def __init__(self):
         self.chain = [self.addGenesisBlock()]
         self.pendingTransactions = []
+        self.difficulty = 2
+        self.minerRewards = 12
+        self.blockSize = 10
+        self.nodes = set()
     
     def getPrevBlock(self):
         return self.chain[-1]
     
-    def addGenesisBlock(self): #   !!!WARNING!!! - This function will break whole blockchain
+    def addGenesisBlock(self): #   !!!WARNING!!! - This function may break whole blockchain
         tArray = []
         tArray.append(Transaction("system", "system0", 16))
         genesis = Block(tArray, str(datetime.now()) ,0)
@@ -44,7 +47,7 @@ class Blockchain (object):
 
          transaction = Transaction(sender, receiver, amt)
 
-         transaction.signTransaction(key, senderKey)
+        #  transaction.signTransaction(key, senderKey)
 
          if not transaction.isTransactionValid():
              print(Fore.RED + "Transaction failed - Error code: 2")
@@ -94,7 +97,7 @@ class Blockchain (object):
                 self.chain.append(newBlock)
             
             print("Mining Transactions success!")
-            payMiner = Transaction("Miner Reward")
+            payMiner = Transaction("Miner Reward", miner, self.minerRewards)
      
     def getBalance(self, person):
         balance = 0
@@ -281,3 +284,16 @@ class Transaction (object):
             print("Signature Error!")
             return False
         return True
+
+    # def signTransaction(self, key, senderKey):
+	#     if(self.hash != self.calculateHash()):
+	# 	    print("transaction tampered error")
+	# 	    return False
+	#     if(str(key.publickey().export_key()) != str(senderKey.publickey().export_key())):
+	# 	    print("Transaction attempt to be signed from another wallet")
+	# 		return False
+	#     pkcs1_15.new(key)
+	#     self.signature = "made"
+	# 	#print(key.sign(self.hash, ""))
+	#     print("made signature!")
+    #     return True
