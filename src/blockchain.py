@@ -9,8 +9,8 @@ from colorama import Back, Fore, Style, init
 # from Crypto.Cipher import AES
 from Crypto.PublicKey import RSA
 from Crypto.Random import get_random_bytes
-from Crypto.Signature import *
-from cryptography.fernet import Fernet, MultiFernet
+# from Crypto.Signature import *
+# from cryptography.fernet import Fernet, MultiFernet
 
 class Blockchain (object):
     def __init__(self):
@@ -78,14 +78,14 @@ class Blockchain (object):
             
         return True
 
-    def minePendingTransactions(self, miner):
+    def minePendingTransactions(self, miner, showDebug):
         lenPT = len(self.pendingTransactions)
         if(lenPT < 1):
             print(Fore.RED + "No transactions!")
             print(Style.RESET_ALL)
             return False
         else:
-            for i in range(0, lenPT, self.blockSize):
+            for i in range(0, lenPT):
                 end = i + self.blockSize
                 if i >= lenPT:
                     end = lenPT
@@ -94,11 +94,11 @@ class Blockchain (object):
                 newBlock = Block(transactionSlice, str(datetime.now()), len(self.chain))
                 hashVal = self.getPrevBlock().hash
                 newBlock.prev = hashVal
-                newBlock.mineBlock(self.difficulty, True)
+                newBlock.mineBlock(self.difficulty, showDebug)
                 self.chain.append(newBlock)
             
-            print("Mining Transactions success!")
-            self.addTransaction("Miner Reward", miner, self.minerRewards)
+            # print("Mining Transactions success!")
+            self.addTransaction("Miner Reward", miner, self.minerRewards, 'a', 'b', True)
      
     def getBalance(self, person):
         balance = 0
