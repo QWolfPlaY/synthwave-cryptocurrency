@@ -42,9 +42,10 @@ class Blockchain (object):
         #  senderKey = RSA.import_key(senderKeyByte)
 
          if not sender or not receiver or not amt:
-             print(Fore.RED + "Transaction Failed - Error code: 1")
-             print(Style.RESET_ALL)
-
+            print(Fore.RED + "Transaction Failed - Error code: 1")
+            print(Style.RESET_ALL)
+            return False
+        
          transaction = Transaction(sender, receiver, amt)
 
         #  transaction.signTransaction(key, senderKey)
@@ -97,7 +98,7 @@ class Blockchain (object):
                 self.chain.append(newBlock)
             
             print("Mining Transactions success!")
-            payMiner = Transaction("Miner Reward", miner, self.minerRewards)
+            self.addTransaction("Miner Reward", miner, self.minerRewards)
      
     def getBalance(self, person):
         balance = 0
