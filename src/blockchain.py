@@ -12,7 +12,6 @@ from Crypto.Random import get_random_bytes
 from Crypto.Signature import *
 from cryptography.fernet import Fernet, MultiFernet
 
-
 class Blockchain (object):
     def __init__(self):
         self.chain = [self.addGenesisBlock()]
@@ -25,22 +24,22 @@ class Blockchain (object):
     def getPrevBlock(self):
         return self.chain[-1]
     
-    def addGenesisBlock(self): #   !!!WARNING!!! - This function may break whole blockchain
+    def addGenesisBlock(self): #   !!!WARNING!!! - This function will break blockchain
         tArray = []
-        tArray.append(Transaction("system", "system0", 16))
+        tArray.append(Transaction("system0", "system1", 1))
         genesis = Block(tArray, str(datetime.now()) ,0)
         genesis.prev = "Null"
         return genesis
     
-    def addTransactions(self, sender, receiver, amt, keyString, senderKey, showDebug):
+    def addTransaction(self, sender, receiver, amt, keyString, senderKey, showDebug):
          keyByte = keyString.encode("ASCII")
          senderKeyByte = senderKey.encode("ASCII")
 
          if(showDebug == True):
              print(type(keyByte), keyByte) #DEBUG ONLY
          
-         key = RSA.import_key(keyByte)
-         senderKey = RSA.import_key(senderKeyByte)
+        #  key = RSA.import_key(keyByte)
+        #  senderKey = RSA.import_key(senderKeyByte)
 
          if not sender or not receiver or not amt:
              print(Fore.RED + "Transaction Failed - Error code: 1")
@@ -79,9 +78,9 @@ class Blockchain (object):
         return True
 
     def minePendingTransactions(self, miner):
-        lenPT = len(self.pendingtransactions)
-        if(lenPT <= 1):
-            print(Fore.RED + "Not enough to transactions!")
+        lenPT = len(self.pendingTransactions)
+        if(lenPT < 1):
+            print(Fore.RED + "No transactions!")
             print(Style.RESET_ALL)
             return False
         else:
@@ -90,11 +89,11 @@ class Blockchain (object):
                 if i >= lenPT:
                     end = lenPT
                 
-                transactionSlice = self.pendingtransactions[i:end]
+                transactionSlice = self.pendingTransactions[i:end]
                 newBlock = Block(transactionSlice, str(datetime.now()), len(self.chain))
                 hashVal = self.getPrevBlock().hash
                 newBlock.prev = hashVal
-                newBlock.mineBlock(self.difficulty)
+                newBlock.mineBlock(self.difficulty, True)
                 self.chain.append(newBlock)
             
             print("Mining Transactions success!")
@@ -204,11 +203,7 @@ class Blockchain (object):
             b64 = str(b64s.encode('ascii'))
             f.close()
         
-        self. chain = self.chainJSONDecode(b64)
-        
-
-
-            
+        self.chain = self.chainJSONDecode(b64)
 
 class Block (object):
     def __init__(self, transactions, time, index):
@@ -247,7 +242,7 @@ class Block (object):
             self.nonce += 1
             self.hash = self.calculateHash()
             if(showDebug == True):
-                print(len(self.hashPuzzle))         # DEBUG ONLY
+                print(len(hashPuzzle))              # DEBUG ONLY
                 print(len(self.hash[0:difficulty])) # DEBUG ONLY
             print("Block Mined!")
             return True
@@ -277,13 +272,13 @@ class Transaction (object):
         return hashlib.sha256(hashEncoded).hexdigest()
     
     def isTransactionValid(self):
-        if(self.hash != self.calculateHash()):
+        if (self.hash != self.calculateHash()):
             return False
-        if(self.sender == self.receiver):
+        if (self.sender == self.receiver):
             return False
-        if not self.signature or len(self.signature) == 0:
-            print("Signature Error!")
-            return False
+        # if not self.signature or len(self.signature) == 0:
+            # print("Signature Error!")
+            # return False
         return True
 
     # def signTransaction(self, key, senderKey):
